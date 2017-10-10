@@ -27,7 +27,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.opmodes;
 
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -109,6 +109,7 @@ public class OpMode extends com.qualcomm.robotcore.eventloop.opmode.OpMode
         double backLeftPower = 0;
         double frontRightPower = 0;
         double backRightPower = 0;
+        String direction = "stopped";
         /*Controller setup
         left stick + right bumper - move left and right
         left stick + right stick + right bumper - move diagonally
@@ -128,6 +129,11 @@ public class OpMode extends com.qualcomm.robotcore.eventloop.opmode.OpMode
                 frontLeftPower = leftX;
                 backLeftPower = -leftX;
                 backRightPower = leftX;
+                if(leftX > 0){
+                    direction = "strafing right";
+                } else if (leftX < 0){
+                    direction = "strafing left";
+                }
                 /*
                   Diagonal. Right stick will control forwards and backwards.
                   Left stick will will control left and right
@@ -136,17 +142,21 @@ public class OpMode extends com.qualcomm.robotcore.eventloop.opmode.OpMode
                 if(leftX > 0){ //Right
                     frontLeftPower = ((leftX/2 + rightY/2)/2);
                     backRightPower = ((leftX/2 + rightY/2)/2);
+                    direction = "diagonal front-right";
                 } else if(leftX < 0){ //Left
                     frontRightPower = ((Math.abs(leftX/2) + rightY/2)/2);
                     backLeftPower = ((Math.abs(leftX/2) + rightY/2)/2);
+                    direction = "diagonal front-left";
                 }
             } else if (rightY < 0){ //Backwards
                 if(leftX > 0){ //Right
                     frontLeftPower = -((leftX/2 + rightY/2)/2);
                     backRightPower = -((leftX/2 + rightY/2)/2);
+                    direction = "diagonal back-right";
                 } else if(leftX < 0){ //Left
                     frontRightPower = -((Math.abs(leftX/2) + rightY/2)/2);
                     backLeftPower = -((Math.abs(leftX/2) + rightY/2)/2);
+                    direction = "diagonal back-left";
                 }
             }
         } else { //Normal Tank Drive
@@ -154,6 +164,23 @@ public class OpMode extends com.qualcomm.robotcore.eventloop.opmode.OpMode
             backLeftPower = leftY;
             frontRightPower = rightY;
             backRightPower = rightY;
+            if (leftY > 0){
+                if (rightY > 0){
+                    direction = "forwards";
+                } else if (rightY < 0){
+                    direction = "pivot right";
+                } else {
+                    direction = "turn right";
+                }
+            } else if (leftY < 0){
+                if(rightY < 0){
+                    direction = "backwards";
+                } else if (rightY > 0){
+                    direction = "pivot left";
+                }
+            } else if(rightY > 0){
+                direction = "turn left";
+            }
         }
 
         // Send calculated power to wheels
@@ -164,6 +191,7 @@ public class OpMode extends com.qualcomm.robotcore.eventloop.opmode.OpMode
         // Show the elapsed game time and wheel power.
         telemetry.addData("Status", "Run Time: " + runtime.toString());
         telemetry.addData("Motors", "front left (%.2f) | front right (%.2f), back left (%.2f)| back right (%.2f)", frontLeftPower, frontRightPower, backLeftPower, backRightPower);
+        telemetry.addData("Direction", direction);
     }
 
     /*
