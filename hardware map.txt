@@ -1,0 +1,12 @@
+front left = left_drive
+front right = right_drive(r)
+back right = left_back_drive
+back left = right_back_drive(r)
+gliph arm = tilt
+gliph arm zax = up
+color sense arm = jewel
+gliph pinch = pinch
+claw rotation = claw_r
+open/close claw = claw
+giraffe arm = g_arm
+color sense = color
