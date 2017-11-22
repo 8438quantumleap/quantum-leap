@@ -27,7 +27,7 @@
 * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.opmodes;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -48,7 +48,7 @@ public class JacksonsTeleOp extends OpMode
 
     private DcMotor glypherArmTilt = null;
     private DcMotor glypherArmYax = null;
-    private Servo glypherPinch = null;
+    private DcMotor glypherPinch = null;
 
     private Servo jewel = null;
 
@@ -69,9 +69,9 @@ public class JacksonsTeleOp extends OpMode
 
         glypherArmTilt = hardwareMap.get(DcMotor.class, "tilt");
         glypherArmYax = hardwareMap.get(DcMotor.class, "up");
-        glypherPinch = hardwareMap.get(Servo.class, "pinch");
+        glypherPinch = hardwareMap.get(DcMotor.class, "pinch");
 
-        jewel = hardwareMap.get(Servo.class, "jewel");
+        //jewel = hardwareMap.get(Servo.class, "jewel");
 
         // Most robots need the motor on one side to be reversed to drive forward
         // Reverse the motor that runs backwards when connected directly to the battery
@@ -79,8 +79,7 @@ public class JacksonsTeleOp extends OpMode
         rightDrive.setDirection(DcMotor.Direction.REVERSE);
         rightBackDrive.setDirection(DcMotorSimple.Direction.REVERSE);
         glypherArmYax.setDirection(DcMotorSimple.Direction.REVERSE);
-        glypherPinch.setDirection(Servo.Direction.REVERSE);
-        glypherPinch.setPosition(.9);
+        glypherPinch.setDirection(DcMotorSimple.Direction.REVERSE);
 
         // Tell the driver that initialization is complete.
         telemetry.addData("Status", "Initialized");
@@ -150,15 +149,11 @@ public class JacksonsTeleOp extends OpMode
     }
 
     private void gamepadTwoStuff(){
-        telemetry.addData("Servo position", glypherPinch.getPosition());
-        if(gamepad2.left_stick_x == 0){
-            glypherPinch.setPosition(.5);
-        }
         if(Math.abs(gamepad2.left_stick_x) > Math.abs(gamepad2.left_stick_y)){
             if(gamepad2.left_stick_x > 0){
-                glypherPinch.setPosition(1);
+                glypherPinch.setPower(.2);
             } else if(gamepad2.left_stick_x < 0){
-                glypherPinch.setPosition(0);
+                glypherPinch.setPower(-.2);
             }
         } else {
             if(gamepad2.left_trigger > 0) {
