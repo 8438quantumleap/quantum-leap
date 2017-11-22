@@ -27,7 +27,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.opmodes;
 
 import android.app.Activity;
 import android.graphics.Color;
@@ -58,12 +58,12 @@ public class NorthWestJewelTest extends LinearOpMode {
     private DcMotor frontRightDrive = null;
     private DcMotor backLeftDrive = null;
     private DcMotor backRightDrive = null;
-    private DcMotor Tilt = null;
+    private DcMotor Jewel = null;
 
     static final double MAX_POS     =  1.0;     // Maximum rotational position
     static final double MIN_POS     =  0.0;     // Minimum rotational position
     double  position = (MAX_POS - MIN_POS) / 2;
-    Servo   servo;
+    //Servo   servo;
 
 
     /** The colorSensor field will contain a reference to our color sensor hardware object */
@@ -83,7 +83,7 @@ public class NorthWestJewelTest extends LinearOpMode {
         backRightDrive = hardwareMap.get(DcMotor.class, "right_back_drive");
         int relativeLayoutId = hardwareMap.appContext.getResources().getIdentifier("RelativeLayout", "id", hardwareMap.appContext.getPackageName());
         final View relativeLayout = ((Activity) hardwareMap.appContext).findViewById(relativeLayoutId);
-        servo = hardwareMap.get(Servo.class, "jewel");
+        Jewel = hardwareMap.get(DcMotor.class, "jewel");
         colorSensor = hardwareMap.get(ColorSensor.class, "color");
 
 
@@ -236,7 +236,9 @@ public class NorthWestJewelTest extends LinearOpMode {
         boolean detectBlue = false;
         float hsvValues[] = {0F,0F,0F};
         final float values[] = hsvValues;
-        servo.setPosition(Servo.MAX_POSITION);
+        Jewel.setPower(-1);
+        sleep(100);
+        Jewel.setPower(0);
         sleep(400);
 
         // get a reference to our ColorSensor object.
@@ -263,7 +265,9 @@ public class NorthWestJewelTest extends LinearOpMode {
         }
         else sleep(1);
         sleep(1000);
-        servo.setPosition(MIN_POS);
+        Jewel.setPower(1);
+        sleep(100);
+        Jewel.setPower(0);
         detectBlue = false;
         detectRed = false;
         sleep(1000);
