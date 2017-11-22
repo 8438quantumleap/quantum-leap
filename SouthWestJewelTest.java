@@ -67,25 +67,22 @@ public class SouthWestJewelTest extends LinearOpMode {
 
 
     /** The colorSensor field will contain a reference to our color sensor hardware object */
-    NormalizedColorSensor colorSensor;
-    /** The relativeLayout field is used to aid in providing interesting visual feedback
-     * in this sample application; you probably *don't* need something analogous when you
-     * use a color sensor on your robot */
-    View relativeLayout;
+    ColorSensor colorSensor;
 
     @Override
     public void runOpMode() {
         telemetry.addData("Status", "Initialized");
         telemetry.update();
 
+
         frontLeftDrive  = hardwareMap.get(DcMotor.class, "left_drive");
         frontRightDrive = hardwareMap.get(DcMotor.class, "right_drive");
         backLeftDrive  = hardwareMap.get(DcMotor.class, "left_back_drive");
         backRightDrive = hardwareMap.get(DcMotor.class, "right_back_drive");
         int relativeLayoutId = hardwareMap.appContext.getResources().getIdentifier("RelativeLayout", "id", hardwareMap.appContext.getPackageName());
-        relativeLayout = ((Activity) hardwareMap.appContext).findViewById(relativeLayoutId);
+        final View relativeLayout = ((Activity) hardwareMap.appContext).findViewById(relativeLayoutId);
         servo = hardwareMap.get(Servo.class, "jewel");
-        colorSensor = hardwareMap.get(NormalizedColorSensor.class, "color");
+        colorSensor = hardwareMap.get(ColorSensor.class, "color");
 
         // Most robots need the motor on one side to be reversed to drive forward
         // Reverse the motor that runs backwards when connected directly to the battery
@@ -94,13 +91,12 @@ public class SouthWestJewelTest extends LinearOpMode {
         backLeftDrive.setDirection(DcMotor.Direction.REVERSE);
         backRightDrive.setDirection(DcMotor.Direction.FORWARD);
 
-        boolean toggleLight = false;
+        boolean bLedOn = true;
 
         // If possible, turn the light on in the beginning (it might already be on anyway,
         // we just make sure it is if we can).
-        if (colorSensor instanceof SwitchableLight) {
-            ((SwitchableLight)colorSensor).enableLight(true);
-        }
+
+
 
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
@@ -114,24 +110,22 @@ public class SouthWestJewelTest extends LinearOpMode {
         {
             //Show the elapsed game time.
             telemetry.addData("Status", "Run Time: " + runtime.toString());
-            toggleLight = true;
-            if (toggleLight) {
-                if (colorSensor instanceof SwitchableLight) {
-                    SwitchableLight light = (SwitchableLight)colorSensor;
-                    light.enableLight(!light.isLightOn());
-                }
-            }
-
-
+            colorSensor.enableLed(bLedOn);
 
             //Arm Code
-            MoveLeft(4);
+            MoveLeft(1);
+            sleep(250);
             ColorSensorJewelArm();
-            MoveRight(4);
+            sleep(250);
+            MoveRight(3);
+            sleep(250);
             //Driving Code
-            MoveBackward(36);
+            MoveForward(30);
+            sleep(250);
             TurnLeft(90);
+            sleep(250);
             MoveForward(16);
+            sleep(250);
 
             active = false;
         }
@@ -179,7 +173,7 @@ public class SouthWestJewelTest extends LinearOpMode {
     }
     public void TurnLeft(double degrees) {
         double Power = 0.25;
-        long time = (long)(degrees * 15.70);//(precise)
+        long time = (long)(degrees * 14.9);//(precise)
         frontLeftDrive.setPower(Power * -1);
         frontRightDrive.setPower(Power);
         backLeftDrive.setPower(Power * -1);
@@ -194,7 +188,7 @@ public class SouthWestJewelTest extends LinearOpMode {
     }
     public void TurnRight(double degrees) {
         double Power = 0.25;
-        long time = (long)(degrees * 15.70);//(precise)
+        long time = (long)(degrees * 14.9);//(precise)
         frontLeftDrive.setPower(Power);
         frontRightDrive.setPower(Power * -1);
         backLeftDrive.setPower(Power);
@@ -210,7 +204,7 @@ public class SouthWestJewelTest extends LinearOpMode {
     public void MoveLeft(double inches) {
         double LeftPower = 0.45;
         double RightPower = 0.55;
-        long time = (long)(inches * 100);//NOT THE REAL VALUE (imprecise)
+        long time = (long)(inches * 85);//NOT THE REAL VALUE (imprecise)
         frontLeftDrive.setPower(LeftPower * -1);
         frontRightDrive.setPower(RightPower);
         backLeftDrive.setPower(LeftPower);
@@ -226,7 +220,7 @@ public class SouthWestJewelTest extends LinearOpMode {
     public void MoveRight(double inches) {
         double LeftPower = 0.45;
         double RightPower = 0.55;
-        long time = (long) (inches * 100);//NOT THE REAL VALUE (imprecise)
+        long time = (long) (inches * 85);//NOT THE REAL VALUE (imprecise)
         frontLeftDrive.setPower(LeftPower);
         frontRightDrive.setPower(RightPower * -1);
         backLeftDrive.setPower(LeftPower * -1);
@@ -240,57 +234,44 @@ public class SouthWestJewelTest extends LinearOpMode {
         backRightDrive.setPower(0);
     }
     public void ColorSensorJewelArm() {
-        float[] hsvValues = new float[3];
-        final float values[] = hsvValues;
         boolean detectRed = false;
         boolean detectBlue = false;
+        float hsvValues[] = {0F,0F,0F};
+        final float values[] = hsvValues;
+        servo.setPosition(Servo.MAX_POSITION);
+        sleep(400);
 
-        servo.setPosition(MAX_POS);
+        // get a reference to our ColorSensor object.
 
-        NormalizedRGBA colors = colorSensor.getNormalizedColors();
-
-        Color.colorToHSV(colors.toColor(), hsvValues);
-        telemetry.addLine()
-                .addData("H", "%.3f", hsvValues[0])
-                .addData("S", "%.3f", hsvValues[1])
-                .addData("V", "%.3f", hsvValues[2]);
-        telemetry.addLine()
-                .addData("a", "%.3f", colors.alpha)
-                .addData("r", "%.3f", colors.red)
-                .addData("g", "%.3f", colors.green)
-                .addData("b", "%.3f", colors.blue);
-
-        int color = colors.toColor();
-
-        float max = Math.max(Math.max(Math.max(colors.red, colors.green), colors.blue), colors.alpha);
-        colors.red   /= max;
-        colors.green /= max;//divides relative to max
-        colors.blue  /= max;
-        color = colors.toColor();
-
-        telemetry.addLine("normalized color:  ")
-                .addData("a", "%02x", Color.alpha(color))
-                .addData("r", "%02x", Color.red(color))
-                .addData("g", "%02x", Color.green(color))
-                .addData("b", "%02x", Color.blue(color));
-        telemetry.update();
-
-        if (colors.red == 1){
+        // Set the LED in the beginning
+        colorSensor.enableLed(true);
+        sleep(500);
+        //We are on blue team in this one
+        if (colorSensor.blue() < colorSensor.red() && colorSensor.red() > 1) {
             detectRed = true;
-        }
-        else if (colors.blue == 1){
+        } else {
             detectBlue = true;
         }
-
+        sleep(1);
         if (detectBlue){
-            TurnRight(30);
             TurnLeft(30);
-        }
-        else if (detectRed){
-            TurnLeft(30);
+            sleep(500);
             TurnRight(30);
         }
+        if (detectRed){
+            TurnRight(30);
+            sleep(500);
+            TurnLeft(30);
+        }
+        else sleep(1);
+        sleep(1000);
         servo.setPosition(MIN_POS);
+        detectBlue = false;
+        detectRed = false;
+        sleep(1000);
 
     }
+
+
 }
+
