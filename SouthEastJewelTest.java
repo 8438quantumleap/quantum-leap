@@ -27,7 +27,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.opmodes;
 
 import android.app.Activity;
 import android.graphics.Color;
@@ -57,34 +57,30 @@ public class SouthEastJewelTest extends LinearOpMode {
     private DcMotor frontRightDrive = null;
     private DcMotor backLeftDrive = null;
     private DcMotor backRightDrive = null;
-    private DcMotor Tilt = null;
+    private DcMotor Jewel = null;
 
     static final double MAX_POS     =  1.0;     // Maximum rotational position
     static final double MIN_POS     =  0.0;     // Minimum rotational position
     double  position = (MAX_POS - MIN_POS) / 2;
-    Servo   servo;
 
 
     /** The colorSensor field will contain a reference to our color sensor hardware object */
     ColorSensor colorSensor;
 
     @Override
-    public void runOpMode() throws InterruptedException {
+    public void runOpMode() {
         telemetry.addData("Status", "Initialized");
         telemetry.update();
 
-        // Initialize the hardware variables. Note that the strings used here as parameters
-        // to 'get' must correspond to the names assigned during the robot configuration
-        // step (using the FTC Robot Controller app on the phone).
+
         frontLeftDrive  = hardwareMap.get(DcMotor.class, "left_drive");
         frontRightDrive = hardwareMap.get(DcMotor.class, "right_drive");
         backLeftDrive  = hardwareMap.get(DcMotor.class, "left_back_drive");
         backRightDrive = hardwareMap.get(DcMotor.class, "right_back_drive");
         int relativeLayoutId = hardwareMap.appContext.getResources().getIdentifier("RelativeLayout", "id", hardwareMap.appContext.getPackageName());
         final View relativeLayout = ((Activity) hardwareMap.appContext).findViewById(relativeLayoutId);
-        servo = hardwareMap.get(Servo.class, "jewel");
+        Jewel = hardwareMap.get(DcMotor.class, "jewel");
         colorSensor = hardwareMap.get(ColorSensor.class, "color");
-
 
         // Most robots need the motor on one side to be reversed to drive forward
         // Reverse the motor that runs backwards when connected directly to the battery
@@ -94,6 +90,12 @@ public class SouthEastJewelTest extends LinearOpMode {
         backRightDrive.setDirection(DcMotor.Direction.FORWARD);
 
         boolean bLedOn = true;
+
+        // If possible, turn the light on in the beginning (it might already be on anyway,
+        // we just make sure it is if we can).
+
+
+
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
         runtime.reset();
@@ -239,7 +241,9 @@ public class SouthEastJewelTest extends LinearOpMode {
         boolean detectBlue = false;
         float hsvValues[] = {0F,0F,0F};
         final float values[] = hsvValues;
-        servo.setPosition(Servo.MAX_POSITION);
+        Jewel.setPower(-1);
+        sleep(100);
+        Jewel.setPower(0);
         sleep(400);
 
         // get a reference to our ColorSensor object.
@@ -266,7 +270,9 @@ public class SouthEastJewelTest extends LinearOpMode {
         }
         else sleep(1);
         sleep(1000);
-        servo.setPosition(MIN_POS);
+        Jewel.setPower(1);
+        sleep(100);
+        Jewel.setPower(0);
         detectBlue = false;
         detectRed = false;
         sleep(1000);
