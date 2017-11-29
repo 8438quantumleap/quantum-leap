@@ -50,6 +50,9 @@ public class JacksonsTeleOp extends OpMode
     private DcMotor glypherArmYax = null;
     private DcMotor glypherPinch = null;
 
+    //temp
+    private Servo ts;
+
     //private Servo jewel = null;
 
     /*
@@ -70,6 +73,9 @@ public class JacksonsTeleOp extends OpMode
         glypherArmTilt = hardwareMap.get(DcMotor.class, "tilt");
         glypherArmYax = hardwareMap.get(DcMotor.class, "up");
         glypherPinch = hardwareMap.get(DcMotor.class, "pinch");
+
+        //temp
+        ts = hardwareMap.get(Servo.class, "ts");
 
         //jewel = hardwareMap.get(Servo.class, "jewel");
 
@@ -146,6 +152,17 @@ public class JacksonsTeleOp extends OpMode
         rightDrive.setPower(rightPower*powermult);
         leftBackDrive.setPower(leftBackPower*powermult);
         rightBackDrive.setPower(rightBackPower*powermult);
+
+        //test
+        if(gamepad1.a){
+            ts.setPosition(90);
+        }
+        if(gamepad1.b){
+            ts.setPosition(180);
+        }
+        if(gamepad1.x){
+            ts.setPosition(0);
+        }
     }
 
     private void gamepadTwoStuff(){
