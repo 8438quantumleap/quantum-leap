@@ -40,6 +40,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 import com.qualcomm.robotcore.hardware.ColorSensor;
@@ -49,7 +50,7 @@ import com.qualcomm.robotcore.hardware.SwitchableLight;
 import com.qualcomm.robotcore.hardware.Servo;
 
 
-@Autonomous(name="SouthWestJewelTest(BlueRP)", group="Linear Opmode")
+@Autonomous(name="SouthWestJewelAutonomous(BlueRP)", group="Linear Opmode")
 public class SouthWestJewelTest extends LinearOpMode {
 
     // Declare OpMode members.
@@ -58,12 +59,14 @@ public class SouthWestJewelTest extends LinearOpMode {
     private DcMotor frontRightDrive = null;
     private DcMotor backLeftDrive = null;
     private DcMotor backRightDrive = null;
-    private DcMotor Tilt = null;
+    private DcMotor jewel = null;
+    private DcMotor tilt = null;
+    private DcMotor up = null;
+    private DcMotor pinch = null;
 
     static final double MAX_POS     =  1.0;     // Maximum rotational position
     static final double MIN_POS     =  0.0;     // Minimum rotational position
     double  position = (MAX_POS - MIN_POS) / 2;
-    Servo   servo;
 
 
     /** The colorSensor field will contain a reference to our color sensor hardware object */
@@ -81,8 +84,11 @@ public class SouthWestJewelTest extends LinearOpMode {
         backRightDrive = hardwareMap.get(DcMotor.class, "right_back_drive");
         int relativeLayoutId = hardwareMap.appContext.getResources().getIdentifier("RelativeLayout", "id", hardwareMap.appContext.getPackageName());
         final View relativeLayout = ((Activity) hardwareMap.appContext).findViewById(relativeLayoutId);
-        servo = hardwareMap.get(Servo.class, "jewel");
+        jewel = hardwareMap.get(DcMotor.class, "jewel");
         colorSensor = hardwareMap.get(ColorSensor.class, "color");
+        tilt  = hardwareMap.get(DcMotor.class, "tilt");
+        up  = hardwareMap.get(DcMotor.class, "up");
+        pinch  = hardwareMap.get(DcMotor.class, "pinch");
 
         // Most robots need the motor on one side to be reversed to drive forward
         // Reverse the motor that runs backwards when connected directly to the battery
@@ -90,6 +96,9 @@ public class SouthWestJewelTest extends LinearOpMode {
         frontRightDrive.setDirection(DcMotor.Direction.FORWARD);
         backLeftDrive.setDirection(DcMotor.Direction.REVERSE);
         backRightDrive.setDirection(DcMotor.Direction.FORWARD);
+        tilt.setDirection(DcMotor.Direction.FORWARD);
+        up.setDirection(DcMotor.Direction.REVERSE);
+        pinch.setDirection(DcMotor.Direction.FORWARD);
 
         boolean bLedOn = true;
 
@@ -238,7 +247,9 @@ public class SouthWestJewelTest extends LinearOpMode {
         boolean detectBlue = false;
         float hsvValues[] = {0F,0F,0F};
         final float values[] = hsvValues;
-        servo.setPosition(Servo.MAX_POSITION);
+        jewel.setPower(-1);
+        sleep(100);
+        jewel.setPower(0);
         sleep(400);
 
         // get a reference to our ColorSensor object.
@@ -249,10 +260,9 @@ public class SouthWestJewelTest extends LinearOpMode {
         //We are on blue team in this one
         if (colorSensor.blue() < colorSensor.red() && colorSensor.red() > 1) {
             detectRed = true;
-        } else {
+        } else if (colorSensor.red() < colorSensor.blue() && colorSensor.red() > 1) {
             detectBlue = true;
-        }
-        sleep(1);
+        } else sleep(1);
         if (detectBlue){
             TurnLeft(30);
             sleep(500);
@@ -265,7 +275,9 @@ public class SouthWestJewelTest extends LinearOpMode {
         }
         else sleep(1);
         sleep(1000);
-        servo.setPosition(MIN_POS);
+        jewel.setPower(1);
+        sleep(100);
+        jewel.setPower(0);
         detectBlue = false;
         detectRed = false;
         sleep(1000);
