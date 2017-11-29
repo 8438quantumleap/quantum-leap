@@ -50,7 +50,7 @@ public class JacksonsTeleOp extends OpMode
     private DcMotor glypherArmYax = null;
     private DcMotor glypherPinch = null;
 
-    private Servo jewel = null;
+    //private Servo jewel = null;
 
     /*
      * Code to run ONCE when the driver hits INIT
@@ -79,7 +79,7 @@ public class JacksonsTeleOp extends OpMode
         rightDrive.setDirection(DcMotor.Direction.REVERSE);
         rightBackDrive.setDirection(DcMotorSimple.Direction.REVERSE);
         glypherArmYax.setDirection(DcMotorSimple.Direction.REVERSE);
-        glypherPinch.setDirection(DcMotorSimple.Direction.REVERSE);
+        //glypherPinch.setDirection(DcMotorSimple.Direction.REVERSE);
 
         // Tell the driver that initialization is complete.
         telemetry.addData("Status", "Initialized");
@@ -98,7 +98,7 @@ public class JacksonsTeleOp extends OpMode
     @Override
     public void start() {
         runtime.reset();
-        jewel.setPosition(.05);
+        //jewel.setPosition(.05);
     }
 
     /*
@@ -149,11 +149,13 @@ public class JacksonsTeleOp extends OpMode
     }
 
     private void gamepadTwoStuff(){
+        double glypherPinchPower = 0;
+
         if(Math.abs(gamepad2.left_stick_x) > Math.abs(gamepad2.left_stick_y)){
             if(gamepad2.left_stick_x > 0){
-                glypherPinch.setPower(.2);
+                glypherPinchPower = .75;
             } else if(gamepad2.left_stick_x < 0){
-                glypherPinch.setPower(-.2);
+                glypherPinchPower = -.75;
             }
         } else {
             if(gamepad2.left_trigger > 0) {
@@ -170,6 +172,8 @@ public class JacksonsTeleOp extends OpMode
             glypherArmTilt.setPower(gamepad2.right_stick_y  * .15);
         }
         glypherArmTilt.setPower(gamepad2.right_stick_y*.25);
+
+        glypherPinch.setPower(glypherPinchPower);
 
     }
 
