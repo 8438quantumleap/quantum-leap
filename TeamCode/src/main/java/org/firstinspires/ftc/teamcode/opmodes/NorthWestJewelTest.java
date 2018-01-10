@@ -34,19 +34,31 @@ import android.graphics.Color;
 import android.provider.Settings;
 import android.view.View;
 
-import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cCompassSensor;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
-import com.qualcomm.robotcore.util.Range;
 import com.qualcomm.robotcore.hardware.ColorSensor;
-import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
-import com.qualcomm.robotcore.hardware.NormalizedRGBA;
-import com.qualcomm.robotcore.hardware.SwitchableLight;
 import com.qualcomm.robotcore.hardware.Servo;
+
+import org.firstinspires.ftc.robotcore.external.ClassFactory;
+import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
+import org.firstinspires.ftc.robotcore.external.matrices.VectorF;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
+import org.firstinspires.ftc.robotcore.external.navigation.RelicRecoveryVuMark;
+import org.firstinspires.ftc.robotcore.external.navigation.VuMarkInstanceId;
+import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
+import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
+import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackableDefaultListener;
+import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
+
+import org.firstinspires.ftc.robotcore.external.ClassFactory;
+import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
+import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
+import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
 
 
 @Autonomous(name="NorthWestJewelAutonomous(Blue)", group="Linear Opmode")
@@ -58,7 +70,7 @@ public class NorthWestJewelTest extends LinearOpMode {
     private DcMotor frontRightDrive = null;
     private DcMotor backLeftDrive = null;
     private DcMotor backRightDrive = null;
-    private DcMotor jewel = null;
+    private Servo jewel = null;
     private DcMotor tilt = null;
     private DcMotor up = null;
     private DcMotor pinch = null;
@@ -67,6 +79,15 @@ public class NorthWestJewelTest extends LinearOpMode {
     static final double MIN_POS     =  0.0;     // Minimum rotational position
     double  position = (MAX_POS - MIN_POS) / 2;
 
+    public static final String TAG = "Vuforia VuMark Sample";
+
+    OpenGLMatrix lastLocation = null;
+
+    /**
+     * {@link #vuforia} is the variable we will use to store our instance of the Vuforia
+     * localization engine.
+     */
+    VuforiaLocalizer vuforia;
 
     /** The colorSensor field will contain a reference to our color sensor hardware object */
     ColorSensor colorSensor;
@@ -83,7 +104,7 @@ public class NorthWestJewelTest extends LinearOpMode {
         backRightDrive = hardwareMap.get(DcMotor.class, "right_back_drive");
         int relativeLayoutId = hardwareMap.appContext.getResources().getIdentifier("RelativeLayout", "id", hardwareMap.appContext.getPackageName());
         final View relativeLayout = ((Activity) hardwareMap.appContext).findViewById(relativeLayoutId);
-        jewel = hardwareMap.get(DcMotor.class, "jewel");
+        jewel = hardwareMap.get(Servo.class, "jewel");
         colorSensor = hardwareMap.get(ColorSensor.class, "color");
         tilt  = hardwareMap.get(DcMotor.class, "tilt");
         up  = hardwareMap.get(DcMotor.class, "up");
@@ -100,14 +121,19 @@ public class NorthWestJewelTest extends LinearOpMode {
         pinch.setDirection(DcMotor.Direction.FORWARD);
 
         boolean bLedOn = true;
+
+        pinch.setPower(-0.1);
+        sleep(200);
+        pinch.setPower(0);
+
         // Wait for the game to start (driver presses PLAY)
+        telemetry.addData(">", "Press Play to start");
+        telemetry.update();
         waitForStart();
         runtime.reset();
         double leftPower;
         double rightPower;
         boolean active = true;
-
-
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive() && active) {
@@ -116,18 +142,22 @@ public class NorthWestJewelTest extends LinearOpMode {
             colorSensor.enableLed(bLedOn);
 
             //Arm Code
-            MoveLeft(1);
+            MoveLeft(4);
+            sleep(250);
+            MoveRight(6);
             sleep(250);
             ColorSensorJewelArm();
             sleep(250);
-            MoveRight(3);
+            MoveBackward(7);
+            sleep(250);
+            VuMarkImageDetector();
             sleep(250);
             //Driving Code
-            MoveForward(24);
+            MoveForward(36);
             sleep(250);
-            MoveRight(12);
+            TurnLeft(90);
             sleep(250);
-            MoveForward(16);
+            MoveForward(12);
             sleep(250);
 
             active = false;
@@ -205,7 +235,7 @@ public class NorthWestJewelTest extends LinearOpMode {
         backRightDrive.setPower(0);
     }
     public void MoveLeft(double inches) {
-        double LeftPower = 0.45;
+        double LeftPower = 0.55;
         double RightPower = 0.55;
         long time = (long)(inches * 85);//NOT THE REAL VALUE (imprecise)
         frontLeftDrive.setPower(LeftPower * -1);
@@ -221,7 +251,7 @@ public class NorthWestJewelTest extends LinearOpMode {
         backRightDrive.setPower(0);
     }
     public void MoveRight(double inches) {
-        double LeftPower = 0.45;
+        double LeftPower = 0.55;
         double RightPower = 0.55;
         long time = (long) (inches * 85);//NOT THE REAL VALUE (imprecise)
         frontLeftDrive.setPower(LeftPower);
@@ -239,11 +269,10 @@ public class NorthWestJewelTest extends LinearOpMode {
     public void ColorSensorJewelArm() {
         boolean detectRed = false;
         boolean detectBlue = false;
+        boolean detectNothing = false;
         float hsvValues[] = {0F,0F,0F};
         final float values[] = hsvValues;
-        jewel.setPower(-1);
-        sleep(100);
-        jewel.setPower(0);
+        jewel.setPosition(0.582);
         sleep(400);
 
         // get a reference to our ColorSensor object.
@@ -254,28 +283,133 @@ public class NorthWestJewelTest extends LinearOpMode {
         //We are on blue team in this one
         if (colorSensor.blue() < colorSensor.red() && colorSensor.red() > 1) {
             detectRed = true;
-        } else {
+        } else if (colorSensor.red() < colorSensor.blue() && colorSensor.blue() > 1) {
             detectBlue = true;
-        }
+        } else detectNothing = true;
         sleep(1);
         if (detectBlue){
-            TurnLeft(30);
+            TurnLeft(20);
             sleep(500);
-            TurnRight(30);
+            jewel.setPosition(0);
+            TurnRight(20);
         }
         if (detectRed){
-            TurnRight(30);
+            TurnRight(20);
             sleep(500);
-            TurnLeft(30);
+            jewel.setPosition(0);
+            TurnLeft(20);
         }
         else sleep(1);
-        sleep(1000);
-        jewel.setPower(1);
-        sleep(100);
-        jewel.setPower(0);
+        sleep(500);
+        jewel.setPosition(0);
+        sleep(250);
+        if (detectNothing){
+            MoveForward(2);
+            jewel.setPosition(0.582);
+            sleep(250);
+            if (colorSensor.blue() < colorSensor.red() && colorSensor.red() > 1) {
+                detectRed = true;
+            } else if (colorSensor.red() < colorSensor.blue() && colorSensor.blue() > 1) {
+                detectBlue = true;
+            } else detectNothing = true;
+            sleep(1);
+            if (detectBlue){
+                TurnLeft(20);
+                sleep(500);
+                jewel.setPosition(0);
+                TurnRight(20);
+            }
+            if (detectRed){
+                TurnRight(20);
+                sleep(500);
+                jewel.setPosition(0);
+                TurnLeft(20);
+            }
+            jewel.setPosition(0.582);
+            sleep(250);
+        }
+        jewel.setPosition(0);
         detectBlue = false;
         detectRed = false;
-        sleep(1000);
+        sleep(500);
 
+    }
+    public void VuMarkImageDetector() {
+        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+        VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters(cameraMonitorViewId);
+        parameters.vuforiaLicenseKey = "AdCD63D/////AAAAGThVVvAi9UMXrbAu6IouvThcGKupmnakuvoWHZtIOH78mz1zQ+JAsVe7NqsffG4WpT1W2DvJQ8VsniObDD0N2W6y7WeavS8kseppMEdzy22UdVDXzvfPfoK/l62C3x0esCe7xeM8IOwZW8GtJX6cOalAR5HgYuS3VuN8eE/sPD9RmYwwRkhkGOntMOlWxc8yCIwTnn3nYBGEsOFEpz2+R+YboSIX2jWL1xs6Z7YqnA2rAAX489xbIoCsTWZEzQlPfbXk7frpTZpT7Nq3kh1PeGcRg536UTWGJ69fSRr8PIHJdycexY7uPhmfhEZBy3/pFOZ5lNhnqBuekll8PAhjftnvXeyRiWHugSEjVNUzdWhY";
+        parameters.cameraDirection = VuforiaLocalizer.CameraDirection.BACK;//We indicate which camera on the RC that we wish to use.
+        this.vuforia = ClassFactory.createVuforiaLocalizer(parameters);
+
+        VuforiaTrackables relicTrackables = this.vuforia.loadTrackablesFromAsset("RelicVuMark");
+        VuforiaTrackable relicTemplate = relicTrackables.get(0);
+        relicTemplate.setName("relicVuMarkTemplate"); // can help in debugging; otherwise not necessary
+
+        relicTrackables.activate();
+        boolean imgScan = true;
+        int loopCount = 0;
+
+        while (imgScan && loopCount >= 100) {
+
+            /**
+             * See if any of the instances of {@link relicTemplate} are currently visible.
+             * {@link RelicRecoveryVuMark} is an enum which can have the following values:
+             * UNKNOWN, LEFT, CENTER, and RIGHT. When a VuMark is visible, something other than
+             * UNKNOWN will be returned by {@link RelicRecoveryVuMark#from(VuforiaTrackable)}.
+             */
+            RelicRecoveryVuMark vuMark = RelicRecoveryVuMark.from(relicTemplate);
+            if (vuMark != RelicRecoveryVuMark.UNKNOWN) {
+
+                /* Found an instance of the template. In the actual game, you will probably
+                 * loop until this condition occurs, then move on to act accordingly depending
+                 * on which VuMark was visible. */
+                telemetry.addData("VuMark", "%s visible", vuMark);
+
+                /* For fun, we also exhibit the navigational pose. In the Relic Recovery game,
+                 * it is perhaps unlikely that you will actually need to act on this pose information, but
+                 * we illustrate it nevertheless, for completeness. */
+                OpenGLMatrix pose = ((VuforiaTrackableDefaultListener) relicTemplate.getListener()).getPose();
+                telemetry.addData("Pose", format(pose));
+
+                /* We further illustrate how to decompose the pose into useful rotational and
+                 * translational components */
+                if (pose != null) {
+                    VectorF trans = pose.getTranslation();
+                    Orientation rot = Orientation.getOrientation(pose, AxesReference.EXTRINSIC, AxesOrder.XYZ, AngleUnit.DEGREES);
+
+                    // Extract the X, Y, and Z components of the offset of the target relative to the robot
+                    double tX = trans.get(0);
+                    double tY = trans.get(1);
+                    double tZ = trans.get(2);
+
+                    // Extract the rotational components of the target relative to the robot
+                    double rX = rot.firstAngle;
+                    double rY = rot.secondAngle;
+                    double rZ = rot.thirdAngle;
+                }
+                if (vuMark == RelicRecoveryVuMark.LEFT){
+                    MoveForward(2);
+                    imgScan = false;
+                }
+                if (vuMark == RelicRecoveryVuMark.CENTER){
+                    MoveForward(7);
+                    imgScan = false;
+                }
+                if (vuMark == RelicRecoveryVuMark.RIGHT){
+                    MoveForward(12);
+                    imgScan = false;
+                }
+                else sleep(100);
+
+            } else {
+                telemetry.addData("VuMark", "not visible");
+            }
+
+            telemetry.update();
+            loopCount = loopCount + 1;
+        }
+    }
+    String format (OpenGLMatrix transformationMatrix){
+        return (transformationMatrix != null) ? transformationMatrix.formatAsTransform() : "null";
     }
 }
