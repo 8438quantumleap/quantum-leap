@@ -35,8 +35,24 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import android.app.Activity;
+import android.graphics.Color;
+import android.provider.Settings;
+import android.view.View;
 
-@TeleOp(name="Basic: Iterative OpMode", group="Iterative Opmode")
+import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cCompassSensor;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
+import com.qualcomm.robotcore.util.Range;
+import com.qualcomm.robotcore.hardware.ColorSensor;
+import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
+import com.qualcomm.robotcore.hardware.NormalizedRGBA;
+import com.qualcomm.robotcore.hardware.SwitchableLight;
+
+import static android.os.SystemClock.sleep;
+
+@TeleOp(name="Main TeleOp", group="Iterative Opmode")
 public class JacksonsTeleOp extends OpMode
 {
     // Declare OpMode members.
@@ -51,7 +67,7 @@ public class JacksonsTeleOp extends OpMode
     private DcMotor glypherPinch = null;
 
     //temp
-    private Servo ts;
+    //private Servo ts;
 
     //private Servo jewel = null;
 
@@ -75,7 +91,7 @@ public class JacksonsTeleOp extends OpMode
         glypherPinch = hardwareMap.get(DcMotor.class, "pinch");
 
         //temp
-        ts = hardwareMap.get(Servo.class, "ts");
+        //ts = hardwareMap.get(Servo.class, "ts");
 
         //jewel = hardwareMap.get(Servo.class, "jewel");
 
@@ -142,9 +158,9 @@ public class JacksonsTeleOp extends OpMode
 
         double powermult = .75;
 
-        if(gamepad1.left_trigger > 0){
+        /*if(gamepad1.left_trigger > 0){
             powermult = .25;
-        } else if(gamepad1.left_bumper){
+        } else*/ if(gamepad1.left_bumper){
             powermult = 1;
         }
 
@@ -154,7 +170,7 @@ public class JacksonsTeleOp extends OpMode
         rightBackDrive.setPower(rightBackPower*powermult);
 
         //test
-        if(gamepad1.a){
+        /*if(gamepad1.a){
             ts.setPosition(90);
         }
         if(gamepad1.b){
@@ -163,16 +179,17 @@ public class JacksonsTeleOp extends OpMode
         if(gamepad1.x){
             ts.setPosition(0);
         }
+        */
     }
-
+// this is coding not minecraft
     private void gamepadTwoStuff(){
         double glypherPinchPower = 0;
 
         if(Math.abs(gamepad2.left_stick_x) > Math.abs(gamepad2.left_stick_y)){
             if(gamepad2.left_stick_x > 0){
-                glypherPinchPower = .75;
+                glypherPinchPower = .40;
             } else if(gamepad2.left_stick_x < 0){
-                glypherPinchPower = -.75;
+                glypherPinchPower = -.40;
             }
         } else {
             if(gamepad2.left_trigger > 0) {
@@ -182,15 +199,20 @@ public class JacksonsTeleOp extends OpMode
                 //fast mode
                 glypherArmYax.setPower(gamepad2.left_stick_y * .60);
             } else {
-                glypherArmYax.setPower(gamepad2.left_stick_y * .50);
+                glypherArmYax.setPower(gamepad2.left_stick_y * .45);
             }
         }
-        if(gamepad2.right_trigger > 0){
-            glypherArmTilt.setPower(gamepad2.right_stick_y  * .15);
+        if(gamepad2.right_trigger > 0) {
+            glypherPinch.setPower(gamepad2.right_trigger*.4);
         }
+
+        if(gamepad2.right_bumper) {
+            glypherPinch.setPower(-.25);
+        }
+        else glypherPinch.setPower(0);
+
         glypherArmTilt.setPower(gamepad2.right_stick_y*.25);
 
-        glypherPinch.setPower(glypherPinchPower);
 
     }
 
