@@ -1,0 +1,320 @@
+/* Copyright (c) 2017 FIRST. All rights reserved.
+*
+* Redistribution and use in source and binary forms, with or without modification,
+* are permitted (subject to the limitations in the disclaimer below) provided that
+* the following conditions are met:
+*
+* Redistributions of source code must retain the above copyright notice, this list
+* of conditions and the following disclaimer.
+*
+* Redistributions in binary form must reproduce the above copyright notice, this
+* list of conditions and the following disclaimer in the documentation and/or
+* other materials provided with the distribution.
+*
+* Neither the name of FIRST nor the names of its contributors may be used to endorse or
+* promote products derived from this software without specific prior written permission.
+*
+* NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE GRANTED BY THIS
+* LICENSE. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+* "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+* THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+* ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
+* FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+* DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+* SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+* CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+* OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+* OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
+
+package org.firstinspires.ftc.teamcode.opmodes;
+
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.ElapsedTime;
+
+@TeleOp(name="Lucas1: Iterative OpMode", group="Iterative Opmode")
+public class LucasTeleOp extends OpMode
+{
+    // Declare OpMode members.
+    private ElapsedTime runtime = new ElapsedTime();
+    private DcMotor leftDrive = null;
+    private DcMotor rightDrive = null;
+    private DcMotor leftBackDrive = null;
+    private DcMotor rightBackDrive = null;
+
+    private DcMotor glypherArmTilt = null;
+    private DcMotor glypherArmYax = null;
+    private DcMotor glypherPinch = null;
+
+    private Servo rExtend = null;
+    private Servo rFlip = null;
+    private Servo rGrab = null;
+
+    //temp
+    //private Servo ts;
+
+    //private Servo jewel = null;
+
+    /*
+     * Code to run ONCE when the driver hits INIT
+     */
+    @Override
+    public void init() {
+        telemetry.addData("Status", "Initializing");
+        telemetry.update();
+        // Initialize the hardware variables. Note that the strings used here as parameters
+        // to 'get' must correspond to the names assigned during the robot configuration
+        // step (using the FTC Robot Controller app on the phone).
+        leftDrive  = hardwareMap.get(DcMotor.class, "left_drive");
+        rightDrive = hardwareMap.get(DcMotor.class, "right_drive");
+        leftBackDrive = hardwareMap.get(DcMotor.class, "left_back_drive");
+        rightBackDrive = hardwareMap.get(DcMotor.class, "right_back_drive");
+
+        glypherArmTilt = hardwareMap.get(DcMotor.class, "tilt");
+        glypherArmYax = hardwareMap.get(DcMotor.class, "up");
+        glypherPinch = hardwareMap.get(DcMotor.class, "pinch");
+
+        rExtend = hardwareMap.get(Servo.class, "rExtend");
+
+        leftDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rightDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        leftBackDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rightBackDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        // reset encoder here
+        glypherPinch.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        glypherPinch.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        leftDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        leftDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        rightDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        rightDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        glypherArmYax.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        glypherArmYax.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        glypherArmTilt.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        glypherArmTilt.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        //    telemetry.addData("enc", glypherPinch.getCurrentPosition());
+
+        //temp
+        //ts = hardwareMap.get(Servo.class, "ts");
+
+        //jewel = hardwareMap.get(Servo.class, "jewel");
+
+        // Most robots need the motor on one side to be reversed to drive forward
+        // Reverse the motor that runs backwards when connected directly to the battery
+        leftDrive.setDirection(DcMotor.Direction.FORWARD);
+        rightDrive.setDirection(DcMotor.Direction.REVERSE);
+        rightBackDrive.setDirection(DcMotorSimple.Direction.REVERSE);
+        glypherArmYax.setDirection(DcMotorSimple.Direction.FORWARD);
+        glypherPinch.setDirection(DcMotorSimple.Direction.FORWARD);
+
+        // Tell the driver that initialization is complete.
+        telemetry.addData("Status", "Initialized");
+        telemetry.update();
+    }
+
+    /*
+     * Code to run REPEATEDLY after the driver hits INIT, but before they hit PLAY
+     */
+    @Override
+    public void init_loop() {
+    }
+
+    /*
+     * Code to run ONCE when the driver hits PLAY
+     */
+    @Override
+    public void start() {
+        runtime.reset();
+        //jewel.setPosition(.05);
+    }
+
+    /*
+     * Code to run REPEATEDLY after the driver hits PLAY but before they hit STOP
+     */
+    @Override
+    public void loop() {
+        gamepadOneStuff();
+        gamepadTwoStuff();
+        // Show the elapsed game time and wheel power.
+        //   telemetry.addData("Status", "Run Time: " + runtime.toString());
+    }
+
+    private void gamepadOneStuff(){
+        double leftPower = 0;
+        double rightPower = 0;
+        double leftBackPower = 0;
+        double rightBackPower = 0;
+
+        double leftY = gamepad1.left_stick_y;
+        double leftX = gamepad1.left_stick_x;
+
+        double rightY = gamepad1.right_stick_y;
+        if(gamepad1.right_bumper || gamepad1.right_trigger > 0) {
+            if (rightY == 0) {
+                rightPower = leftX;
+                leftPower = -leftX;
+                leftBackPower = leftX;
+                rightBackPower = -leftX;
+            }
+        } else {
+            leftPower = leftBackPower = gamepad1.left_stick_y;
+            rightPower = rightBackPower = gamepad1.right_stick_y;
+        }
+
+        double powermult = .75;
+
+        if(gamepad1.left_trigger > 0){
+            powermult = .25;
+        } else if(gamepad1.left_bumper){
+            powermult = 1;
+        }
+
+        leftDrive.setPower(leftPower*powermult);
+        rightDrive.setPower(rightPower*powermult);
+        leftBackDrive.setPower(leftBackPower*powermult);
+        rightBackDrive.setPower(rightBackPower*powermult);
+
+        //  //test
+        //  if(gamepad1.a){
+        //       ts.setPosition(90);
+        //  }
+        //  if(gamepad1.b){
+        //      ts.setPosition(180);
+        //  }
+        //   if(gamepad1.x){
+        //      ts.setPosition(0);
+        //}
+    }
+
+    private void gamepadTwoStuff(){
+
+        movePinch();
+        moveTilt();
+        moveYax();
+        extendRelic();
+
+/*        if(Math.abs(gamepad2.left_stick_x) > Math.abs(gamepad2.left_stick_y)){
+           if(gamepad2.left_stick_x > 0){
+               glypherPinchPower = .75;
+    } else if(gamepad2.left_stick_x < 0){
+               glypherPinchPower = -.75;
+           }
+       }
+
+
+       if(gamepad2.left_trigger > 0) {
+               //slow mode
+               glypherArmYax.setPower(gamepad2.left_stick_y * .40);
+           } else if(gamepad2.left_bumper){
+               //fast mode
+               glypherArmYax.setPower(gamepad2.left_stick_y * .60);
+           } else {
+               glypherArmYax.setPower(gamepad2.left_stick_y * .50);
+           }
+
+       if(gamepad2.right_trigger > 0){
+           glypherArmTilt.setPower(gamepad2.right_stick_y  * .15);
+       }
+       glypherArmTilt.setPower(gamepad2.right_stick_y*.25);
+*/
+        telemetry.addData("flENC",  leftDrive.getCurrentPosition());
+        telemetry.addData("frENC",  rightDrive.getCurrentPosition());
+        telemetry.addData("pinchENC",  glypherPinch.getCurrentPosition());
+        telemetry.addData("tiltENC",  glypherArmTilt.getCurrentPosition());
+        telemetry.addData("yaxENC",  glypherArmYax.getCurrentPosition());
+        telemetry.update();
+    }
+
+    private void movePinch(){
+        double glypherPinchPower = 0;
+        final int maxPinch = 200;
+        final int minPinch = -130;
+        final double pinchSpeed = 0.5;
+        int pinchPosition = glypherPinch.getCurrentPosition();
+
+        if (gamepad2.right_trigger > 0.5) {
+            if (pinchPosition > minPinch) {
+                glypherPinchPower = -pinchSpeed;
+            }
+        }
+        else if (gamepad2.left_trigger > 0.5) {
+            if (pinchPosition < maxPinch) {
+                glypherPinchPower = pinchSpeed;
+            }
+        }
+
+        glypherPinch.setPower(glypherPinchPower);
+
+    }
+
+        private void moveTilt(){
+        double glypherTiltPower = 0;
+        final int maxTilt = 0;
+        final int minTilt = -550;
+        final double tiltSpeed = 0.01;
+        int tiltPosition = glypherArmTilt.getCurrentPosition();
+
+        if(gamepad2.right_stick_y < 0 && tiltPosition > minTilt){
+            glypherTiltPower = tiltSpeed;
+        }
+        else if(gamepad2.right_stick_y > 0 && tiltPosition < maxTilt){
+            glypherTiltPower = -tiltSpeed;
+        }
+        //}
+        glypherArmTilt.setPower(glypherTiltPower);
+
+    }
+
+    private void moveYax(){
+        double glypherYaxPower = 0;
+        final int maxYax = 5200;
+        final int minYax = 0;
+        final double yaxSpeed = 0.7;
+        int yaxPosition = glypherArmYax.getCurrentPosition();
+
+        //if(Math.abs(gamepad2.left_stick_x) < Math.abs(gamepad2.left_stick_y)){
+        if(gamepad2.left_stick_y < 0 && yaxPosition < maxYax){
+            glypherYaxPower = yaxSpeed;
+        }
+        else if(gamepad2.left_stick_y > 0 && yaxPosition > minYax){
+            glypherYaxPower = -yaxSpeed;
+        }
+        //}
+        glypherArmYax.setPower(glypherYaxPower);
+
+    }
+
+    private void extendRelic(){
+        if (gamepad2.dpad_up){
+            rExtend.setPosition(0.6);
+        }
+        else if (gamepad2.dpad_down){
+            rExtend.setPosition(0.4);
+        }
+        else rExtend.setPosition(0.5);
+    }
+    private void flipRelic(){
+
+    }
+    private void grabRelic(){
+
+    }
+    /*
+     * Code to run ONCE after the driver hits STOP
+     */
+    @Override
+    public void stop() {
+    }
+
+}
+
+
