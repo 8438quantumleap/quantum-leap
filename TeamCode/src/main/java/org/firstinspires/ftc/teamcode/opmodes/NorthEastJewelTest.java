@@ -122,10 +122,6 @@ public class NorthEastJewelTest extends LinearOpMode {
 
         boolean bLedOn = true;
 
-        pinch.setPower(-0.1);
-        sleep(200);
-        pinch.setPower(0);
-
         // Wait for the game to start (driver presses PLAY)
         telemetry.addData(">", "Press Play to start");
         telemetry.update();
@@ -143,25 +139,23 @@ public class NorthEastJewelTest extends LinearOpMode {
             colorSensor.enableLed(bLedOn);
 
             //Arm Code
-            MoveLeft(1);
+            MoveLeft(6);
+            sleep(250);
+            MoveRight(4.5);
             sleep(250);
             ColorSensorJewelArm();
             sleep(250);
-            MoveRight(3);
-            sleep(250);
+
             MoveBackward(7);
             sleep(250);
             VuMarkImageDetector();
             sleep(250);
             //Driving Code
-            MoveBackward(24);
+            MoveBackward(16);
             sleep(250);
-            MoveRight(12);
+            MoveRight(16);
             sleep(250);
-            TurnLeft(180);
-            sleep(250);
-            MoveForward(16);
-            sleep(250);
+            MoveBackward(7);
 
             active = false;
         }
@@ -308,6 +302,7 @@ public class NorthEastJewelTest extends LinearOpMode {
         sleep(250);
         if (detectNothing){
             MoveForward(2);
+            sleep(250);
             jewel.setPosition(0.582);
             sleep(250);
             if (colorSensor.blue() < colorSensor.red() && colorSensor.red() > 1) {
@@ -315,7 +310,7 @@ public class NorthEastJewelTest extends LinearOpMode {
             } else if (colorSensor.red() < colorSensor.blue() && colorSensor.blue() > 1) {
                 detectBlue = true;
             } else detectNothing = true;
-            sleep(1);
+            sleep(250);
             if (detectRed){
                 TurnLeft(20);
                 sleep(500);
